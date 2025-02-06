@@ -1,4 +1,3 @@
-from __future__ import annotations
 from typing import Self, BinaryIO
 from contextlib import AbstractContextManager
 from struct import unpack as up, pack as pk
@@ -37,28 +36,28 @@ class BinaryReader(AbstractContextManager):
     def unpack(self, type: str, size: int) -> int:
         return up(f"{self.endian.value}{type}", self.read(size))[0]
 
-    def read_ubyte(self) -> int:
+    def read_u8(self) -> int:
         return self.unpack("B", 1)
 
-    def read_byte(self) -> int:
+    def read_i8(self) -> int:
         return self.unpack("b", 1)
 
-    def read_ushort(self) -> int:
+    def read_u16(self) -> int:
         return self.unpack("H", 2)
 
-    def read_short(self) -> int:
+    def read_i16(self) -> int:
         return self.unpack("h", 2)
 
-    def read_uint(self) -> int:
+    def read_u32(self) -> int:
         return self.unpack("I", 4)
 
-    def read_int(self) -> int:
+    def read_i32(self) -> int:
         return self.unpack("i", 4)
 
-    def read_ulong(self) -> int:
+    def read_u64(self) -> int:
         return self.unpack("Q", 8)
 
-    def read_long(self) -> int:
+    def read_i64(self) -> int:
         return self.unpack("q", 8)
 
     def seek(self, offset: int) -> int:
@@ -70,14 +69,23 @@ class BinaryReader(AbstractContextManager):
     def skip(self, number: int) -> int:
         return self.seek(self.tell() + number)
 
-    def read_utf8_string(self, length: int) -> str:
+    def read_utf8_str(self, length: int) -> str:
         return self.read(length).decode("utf-8")
 
-    def read_utf8_nt_string(self, nt: int = 0) -> str:
+    def read_utf8_nt_str(self, nt: int = 0) -> str:
         byte_array = bytearray()
         while (byte := self.read_ubyte()) != nt:
             byte_array.append(byte)
         return bytes(byte_array).decode("utf-8")
+
+    def read_ascii_str(self, length: int) -> str:
+        return self.read(length).decode("ASCII")
+
+    def read_ascii_nt_str(self, nt: int = 0) -> str:
+        byte_array = bytearray()
+        while (byte := self.read_ubyte()) != nt:
+            byte_array.append(byte)
+        return bytes(byte_array).decode("ASCII")
 
     def align(self, number: int) -> int:
         offset = self.tell()
@@ -92,35 +100,41 @@ class MemoryWriter(BytesIO):
     def pack(self, type: str, number: int) -> int:
         return self.write(pk(f"{self.endian.value}{type}", number))
 
-    def write_ubyte(self, number: int) -> int:
+    def write_u8(self, number: int) -> int:
         return self.pack("B", number)
 
-    def write_byte(self, number: int) -> int:
+    def write_i8(self, number: int) -> int:
         return self.pack("b", number)
 
-    def write_ushort(self, number: int) -> int:
+    def write_u16(self, number: int) -> int:
         return self.pack("H", number)
 
-    def write_short(self, number: int) -> int:
+    def write_i16(self, number: int) -> int:
         return self.pack("h", number)
 
-    def write_uint(self, number: int) -> int:
+    def write_u32(self, number: int) -> int:
         return self.pack("I", number)
 
-    def write_int(self, number: int) -> int:
+    def write_i32(self, number: int) -> int:
         return self.pack("i", number)
 
-    def write_ulong(self, number: int) -> int:
+    def write_u64(self, number: int) -> int:
         return self.pack("Q", number)
 
-    def write_long(self, number: int) -> int:
+    def write_i64(self, number: int) -> int:
         return self.pack("q", number)
 
-    def write_utf8_string(self, string: str) -> int:
+    def write_utf8_str(self, string: str) -> int:
         return self.write(string.encode("utf-8"))
 
-    def write_utf8_nt_string(self, string: str, nt: int = 0) -> int:
-        return self.write_utf8_string(string) + self.write_ubyte(nt)
+    def write_utf8_nt_str(self, string: str, nt: int = 0) -> int:
+        return self.write_utf8_str(string) + self.write_ubyte(nt)
+
+    def write_ascii_str(self, string: str) -> int:
+        return self.write(string.encode("ASCII"))
+
+    def write_ascii_nt_str(self, string: str, nt: int = 0) -> int:
+        return self.write_ascii_str(string) + self.write_ubyte(nt)
 
     def align(self, number: int) -> int:
         offset = self.tell()
@@ -156,35 +170,41 @@ class BinaryWriter(AbstractContextManager):
     def pack(self, type: str, number: int) -> int:
         return self.write(pk(f"{self.endian.value}{type}", number))
 
-    def write_ubyte(self, number: int) -> int:
+    def write_u8(self, number: int) -> int:
         return self.pack("B", number)
 
-    def write_byte(self, number: int) -> int:
+    def write_i8(self, number: int) -> int:
         return self.pack("b", number)
 
-    def write_ushort(self, number: int) -> int:
+    def write_u16(self, number: int) -> int:
         return self.pack("H", number)
 
-    def write_short(self, number: int) -> int:
+    def write_i16(self, number: int) -> int:
         return self.pack("h", number)
 
-    def write_uint(self, number: int) -> int:
+    def write_u32(self, number: int) -> int:
         return self.pack("I", number)
 
-    def write_int(self, number: int) -> int:
+    def write_i32(self, number: int) -> int:
         return self.pack("i", number)
 
-    def write_ulong(self, number: int) -> int:
+    def write_u64(self, number: int) -> int:
         return self.pack("Q", number)
 
-    def write_long(self, number: int) -> int:
+    def write_i64(self, number: int) -> int:
         return self.pack("q", number)
 
-    def write_utf8_string(self, string: str) -> int:
+    def write_utf8_str(self, string: str) -> int:
         return self.write(string.encode("utf-8"))
 
-    def write_utf8_nt_string(self, string: str, nt: int = 0) -> int:
-        return self.write_utf8_string(string) + self.write_ubyte(nt)
+    def write_utf8_nt_str(self, string: str, nt: int = 0) -> int:
+        return self.write_utf8_str(string) + self.write_ubyte(nt)
+
+    def write_ascii_str(self, string: str) -> int:
+        return self.write(string.encode("ASCII"))
+
+    def write_ascii_nt_str(self, string: str, nt: int = 0) -> int:
+        return self.write_ascii_str(string) + self.write_ubyte(nt)
 
     def align(self, number: int) -> int:
         offset = self.tell()
