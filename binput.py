@@ -144,6 +144,10 @@ class MemoryWriter(BytesIO):
     def skip(self, number: int) -> int:
         return self.seek(self.tell() + number)
 
+    @property
+    def bytes(self) -> bytes:
+        return self.getvalue()
+
 
 class BinaryWriter(AbstractContextManager):
     def __init__(self, file_path: Path, endian: BinaryEndian = BinaryEndian.LITTLE):
